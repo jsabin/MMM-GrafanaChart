@@ -49,14 +49,16 @@ modules: [
 	 module: 'MMM-GrafanaChart',
 		 position: 'top_right',   // This can be any of the regions.
 		 config: {
-				version: "6", // Only add this line if you are using Grafana verison 6 or greater
-				id: "as8fA8na", // Only Mandartory if you are using Grafana verison 6 or greater found after /d/ in the url
+				version: "7", // Only add this line if you are using Grafana verison 7, 6 or other
+				id: "as8fA8na", // Only Mandatory if you are using Grafana verison 6 or greater found after /d/ in the url
 				host: "grafana_host", //Mandatory. See url when displaying within grafana
 				port: 3000, // Mandatory.
 				https: false, // Optional. Consider using TLS for your data. Default: false
 				dashboardname: "weatherforecast", // Mandatory.
 				orgId: 1, // Mandatory.
 				panelId: 2, // Mandatory.
+                                from: "now-2h", // Optional
+                                to: "now", // Optional
 				width: "100%", // Optional. Default: 100%
 				height: "100%", // Optional. Default: 100%
 				refreshInterval: 900 //Optional. Default: 900 = 1/4 hour
@@ -66,6 +68,9 @@ modules: [
 ````
 
 Everything needed is extractable from the <code>url</code> when you're viewing your chart using grafana in your browser.
+
+<b>Grafana version 7.x</b>
+http://grafana_host:3000/d/TPqkZ-IGk/health?orgId=1&from=now-2d&to=now
 
 <b>Grafana version 6.x</b>
 

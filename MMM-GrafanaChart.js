@@ -7,60 +7,62 @@
 
 
 Module.register("MMM-GrafanaChart", {
-    // Default module config.
-    defaults: {
-        height:"100%",
-        width:"100%",
-        refreshInterval: 900,
-        https: false
-    },
+	// Default module config.
+	defaults: {
+		height: "100%",
+		width: "100%",
+		refreshInterval: 900,
+		https: false
+	},
 
-    // Define start sequence.
-    start: function() {
-        Log.info("Starting module: " + this.name);
-        this.scheduleUpdate(this.config.refreshInterval);
-    },
-    // Override dom generator.
-    getDom: function() {
-        var iframe = document.createElement("IFRAME");
-        iframe.style = "border:0"
-        iframe.width = this.config.width;
-        iframe.height = this.config.height;
-		if (this.config.version == "6")
-		{
-        iframe.src =  ((this.config.https === true) ? "https://" : "http://") +  this.config.host + ":" + this.config.port + "/d/" + this.config.id + "/" + this.config.dashboardname +  "?orgId=" + this.config.orgId + "&panelId=" + this.config.panelId + "&fullscreen&kiosk";
+	// Define start sequence.
+	start: function () {
+		Log.info("Starting module: " + this.name);
+		this.scheduleUpdate(this.config.refreshInterval);
+	},
+	getURL: function () {
+		var protocol = (this.config.https === true) ? "https://" : "http://";
+		var url = protocol + this.config.host + ":" + this.config.port;
+		var timeRange = (this.config.from != null && this.config.to != null) ? "&from=" + this.config.from + "&to=" + this.config.to : "";
+
+		if (this.config.version === "7") {
+			url = url + "/d/" + this.config.id + "/" + this.config.dashboardname + "?orgId=" + this.config.orgId + "&viewPanel=" + this.config.panelId + "&fullscreen&kiosk" + timeRange;
+		} else if (this.config.version === "6") {
+			url = url + "/d/" + this.config.id + "/" + this.config.dashboardname + "?orgId=" + this.config.orgId + "&panelId=" + this.config.panelId + "&fullscreen&kiosk" + timeRange;
+		} else {
+			url = url + "/dashboard-solo/db/" + this.config.dashboardname + "?orgId=" + this.config.orgId + "&panelId=" + this.config.panelId + timeRange;
 		}
-		else{
-			        iframe.src =  ((this.config.https === true) ? "https://" : "http://") +  this.config.host + ":" + this.config.port + "/dashboard-solo/db/" + this.config.dashboardname+  "?orgId=" + this.config.orgId + "&panelId=" + this.config.panelId;;
-			}
-        iframe.setAttribute("timestamp", new Date().getTime());
-        return iframe;
-    },
-    scheduleUpdate: function(delay) {
-        var nextLoad = this.config.refreshInterval;
-        if (typeof delay !== "undefined" && delay >= 0) {
-            nextLoad = delay * 1000; // Convert seconds to millis
-        }
-        var self = this;
-        setTimeout(function() {
-            self.updateFrame();
-        }, nextLoad);
-    },
-    updateFrame: function() {
-        if (this.config.url === "") {
-            Log.error("Tried to refresh, iFrameReload URL not set!");
-            return;
-        }
-			if (this.config.version == "6")
-		{
-        this.src = ((this.config.https === true) ? "https://" : "http://") +  this.config.host + ":" + this.config.port + "/d/" + this.config.id + "/" + this.config.dashboardname +  "?orgId=" + this.config.orgId + "&panelId=" + this.config.panelId + "&fullscreen&kiosk";
+		return url;
+	},
+	// Override dom generator.
+	getDom: function () {
+		var iframe = document.createElement("IFRAME");
+		iframe.style = "border:0"
+		iframe.width = this.config.width;
+		iframe.height = this.config.height;
+		iframe.src = this.getURL();
+		iframe.setAttribute("timestamp", new Date().getTime());
+		return iframe;
+	},
+	scheduleUpdate: function (delay) {
+		var nextLoad = this.config.refreshInterval;
+		if (typeof delay !== "undefined" && delay >= 0) {
+			nextLoad = delay * 1000; // Convert seconds to millis
 		}
-		else{
-		this.src = ((this.config.https === true) ? "https://" : "http://") +  this.config.host + ":" + this.config.port + "/dashboard-solo/db/" + this.config.dashboardname+  "?orgId=" + this.config.orgId + "&panelId=" + this.config.panelId;
+		var self = this;
+		setTimeout(function () {
+			self.updateFrame();
+		}, nextLoad);
+	},
+	updateFrame: function () {
+		if (this.config.url === "") {
+			Log.error("Tried to refresh, iFrameReload URL not set!");
+			return;
 		}
-        Log.info("attempting to update dom for iFrameReload");
-        Log.info('/"this/" module is: ' + this);
-        this.updateDom(1000);
-        this.scheduleUpdate(this.config.refreshInterval);
-    }
+		this.src = this.getURL();
+		Log.info("attempting to update dom for iFrameReload");
+		Log.info('/"this/" module is: ' + this);
+		this.updateDom(1000);
+		this.scheduleUpdate(this.config.refreshInterval);
+	}
 });
